@@ -1,10 +1,5 @@
-import { mysqlTable, varchar, text, int, decimal, boolean, timestamp, json, index } from 'drizzle-orm/mysql-core'
+import { mysqlTable, varchar, text, int, decimal, boolean, datetime, json, index } from 'drizzle-orm/mysql-core'
 import { relations } from 'drizzle-orm'
-
-const timestamps = {
-  created_at: timestamp('created_at').default('CURRENT_TIMESTAMP'),
-  updated_at: timestamp('updated_at').default('CURRENT_TIMESTAMP'),
-}
 
 // Users
 export const users = mysqlTable('users', {
@@ -14,7 +9,8 @@ export const users = mysqlTable('users', {
   password: varchar('password', { length: 255 }).notNull(),
   role: varchar('role', { length: 50 }).notNull().default('buyer'),
   avatar: varchar('avatar', { length: 500 }),
-  ...timestamps,
+  created_at: datetime('created_at'),
+  updated_at: datetime('updated_at'),
 }, (table) => [
   index('email_idx').on(table.email),
 ])
@@ -29,7 +25,8 @@ export const stores = mysqlTable('stores', {
   logo: varchar('logo', { length: 500 }),
   balance: decimal('balance', { precision: 15, scale: 2 }).default('0'),
   is_verified: boolean('is_verified').default(false),
-  ...timestamps,
+  created_at: datetime('created_at'),
+  updated_at: datetime('updated_at'),
 }, (table) => [
   index('user_id_idx').on(table.user_id),
   index('username_idx').on(table.username),
@@ -42,7 +39,8 @@ export const productCategories = mysqlTable('product_categories', {
   slug: varchar('slug', { length: 255 }).notNull().unique(),
   parent_id: int('parent_id'),
   icon: varchar('icon', { length: 255 }),
-  ...timestamps,
+  created_at: datetime('created_at'),
+  updated_at: datetime('updated_at'),
 }, (table) => [
   index('slug_idx').on(table.slug),
   index('parent_id_idx').on(table.parent_id),
@@ -61,7 +59,8 @@ export const products = mysqlTable('products', {
   weight: int('weight').notNull().default(1),
   images: json('images').$type<string[]>().default([]),
   is_active: boolean('is_active').default(true),
-  ...timestamps,
+  created_at: datetime('created_at'),
+  updated_at: datetime('updated_at'),
 }, (table) => [
   index('store_id_idx').on(table.store_id),
   index('category_id_idx').on(table.category_id),
@@ -76,7 +75,7 @@ export const addresses = mysqlTable('addresses', {
   city: varchar('city', { length: 100 }).notNull(),
   city_name: varchar('city_name', { length: 255 }).notNull(),
   zip_code: varchar('zip_code', { length: 10 }).notNull(),
-  created_at: timestamp('created_at').default('CURRENT_TIMESTAMP'),
+  created_at: datetime('created_at'),
 }, (table) => [
   index('user_id_idx').on(table.user_id),
 ])
@@ -94,7 +93,8 @@ export const transactions = mysqlTable('transactions', {
   status: varchar('status', { length: 50 }).notNull().default('pending'),
   snap_token: varchar('snap_token', { length: 500 }),
   snap_url: varchar('snap_url', { length: 500 }),
-  ...timestamps,
+  created_at: datetime('created_at'),
+  updated_at: datetime('updated_at'),
 }, (table) => [
   index('user_id_idx').on(table.user_id),
   index('store_id_idx').on(table.store_id),
@@ -119,7 +119,7 @@ export const storeBalances = mysqlTable('store_balances', {
   amount: decimal('amount', { precision: 15, scale: 2 }).notNull(),
   type: varchar('type', { length: 50 }).notNull(),
   description: text('description'),
-  created_at: timestamp('created_at').default('CURRENT_TIMESTAMP'),
+  created_at: datetime('created_at'),
 }, (table) => [
   index('store_id_idx').on(table.store_id),
 ])
@@ -133,7 +133,8 @@ export const withdrawals = mysqlTable('withdrawals', {
   account_number: varchar('account_number', { length: 100 }).notNull(),
   account_name: varchar('account_name', { length: 255 }).notNull(),
   status: varchar('status', { length: 50 }).notNull().default('pending'),
-  ...timestamps,
+  created_at: datetime('created_at'),
+  updated_at: datetime('updated_at'),
 }, (table) => [
   index('store_id_idx').on(table.store_id),
 ])
