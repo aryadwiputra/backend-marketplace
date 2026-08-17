@@ -21,7 +21,7 @@ app.use('*', logger())
 app.use('*', corsMiddleware)
 app.use('*', errorHandler)
 
-app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }))
+app.get('/api/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }))
 
 app.route('/api/auth', authRoutes)
 app.route('/api/product-category', productCategoryRoutes)
