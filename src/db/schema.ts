@@ -1,6 +1,11 @@
 import { mysqlTable, varchar, text, int, decimal, boolean, timestamp, json, index } from 'drizzle-orm/mysql-core'
 import { relations } from 'drizzle-orm'
 
+const timestamps = {
+  created_at: timestamp('created_at').default('CURRENT_TIMESTAMP'),
+  updated_at: timestamp('updated_at').default('CURRENT_TIMESTAMP'),
+}
+
 // Users
 export const users = mysqlTable('users', {
   id: int('id').primaryKey().autoincrement(),
@@ -9,8 +14,7 @@ export const users = mysqlTable('users', {
   password: varchar('password', { length: 255 }).notNull(),
   role: varchar('role', { length: 50 }).notNull().default('buyer'),
   avatar: varchar('avatar', { length: 500 }),
-  created_at: timestamp('created_at').defaultCurrent(),
-  updated_at: timestamp('updated_at').onUpdateNow(),
+  ...timestamps,
 }, (table) => [
   index('email_idx').on(table.email),
 ])
@@ -25,8 +29,7 @@ export const stores = mysqlTable('stores', {
   logo: varchar('logo', { length: 500 }),
   balance: decimal('balance', { precision: 15, scale: 2 }).default('0'),
   is_verified: boolean('is_verified').default(false),
-  created_at: timestamp('created_at').defaultCurrent(),
-  updated_at: timestamp('updated_at').onUpdateNow(),
+  ...timestamps,
 }, (table) => [
   index('user_id_idx').on(table.user_id),
   index('username_idx').on(table.username),
@@ -39,8 +42,7 @@ export const productCategories = mysqlTable('product_categories', {
   slug: varchar('slug', { length: 255 }).notNull().unique(),
   parent_id: int('parent_id'),
   icon: varchar('icon', { length: 255 }),
-  created_at: timestamp('created_at').defaultCurrent(),
-  updated_at: timestamp('updated_at').onUpdateNow(),
+  ...timestamps,
 }, (table) => [
   index('slug_idx').on(table.slug),
   index('parent_id_idx').on(table.parent_id),
@@ -59,8 +61,7 @@ export const products = mysqlTable('products', {
   weight: int('weight').notNull().default(1),
   images: json('images').$type<string[]>().default([]),
   is_active: boolean('is_active').default(true),
-  created_at: timestamp('created_at').defaultCurrent(),
-  updated_at: timestamp('updated_at').onUpdateNow(),
+  ...timestamps,
 }, (table) => [
   index('store_id_idx').on(table.store_id),
   index('category_id_idx').on(table.category_id),
@@ -75,7 +76,7 @@ export const addresses = mysqlTable('addresses', {
   city: varchar('city', { length: 100 }).notNull(),
   city_name: varchar('city_name', { length: 255 }).notNull(),
   zip_code: varchar('zip_code', { length: 10 }).notNull(),
-  created_at: timestamp('created_at').defaultCurrent(),
+  created_at: timestamp('created_at').default('CURRENT_TIMESTAMP'),
 }, (table) => [
   index('user_id_idx').on(table.user_id),
 ])
@@ -93,8 +94,7 @@ export const transactions = mysqlTable('transactions', {
   status: varchar('status', { length: 50 }).notNull().default('pending'),
   snap_token: varchar('snap_token', { length: 500 }),
   snap_url: varchar('snap_url', { length: 500 }),
-  created_at: timestamp('created_at').defaultCurrent(),
-  updated_at: timestamp('updated_at').onUpdateNow(),
+  ...timestamps,
 }, (table) => [
   index('user_id_idx').on(table.user_id),
   index('store_id_idx').on(table.store_id),
@@ -119,7 +119,7 @@ export const storeBalances = mysqlTable('store_balances', {
   amount: decimal('amount', { precision: 15, scale: 2 }).notNull(),
   type: varchar('type', { length: 50 }).notNull(),
   description: text('description'),
-  created_at: timestamp('created_at').defaultCurrent(),
+  created_at: timestamp('created_at').default('CURRENT_TIMESTAMP'),
 }, (table) => [
   index('store_id_idx').on(table.store_id),
 ])
@@ -133,8 +133,7 @@ export const withdrawals = mysqlTable('withdrawals', {
   account_number: varchar('account_number', { length: 100 }).notNull(),
   account_name: varchar('account_name', { length: 255 }).notNull(),
   status: varchar('status', { length: 50 }).notNull().default('pending'),
-  created_at: timestamp('created_at').defaultCurrent(),
-  updated_at: timestamp('updated_at').onUpdateNow(),
+  ...timestamps,
 }, (table) => [
   index('store_id_idx').on(table.store_id),
 ])
@@ -183,7 +182,7 @@ export const productsRelations = relations(products, ({ one, many }) => ({
 export const addressesRelations = relations(addresses, ({ one, many }) => ({
   user: one(users, {
     fields: [addresses.user_id],
-    references: [users.id],
+    references: [addresses.id],
   }),
   transactions: many(transactions),
 }))

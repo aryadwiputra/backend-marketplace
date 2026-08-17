@@ -7,4 +7,6 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.DATABASE_URL || 'mysql://user:password@localhost:3306/marketplace',
   },
+  verbose: true,
+  strict: true,
 })
