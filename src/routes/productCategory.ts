@@ -8,7 +8,7 @@ import { success, created, error, paginated } from '../utils/response'
 const productCategory = new Hono()
 
 productCategory.get('/', async (c) => {
-  const { search, parent_id } = c.req.query()
+  const { search, parent_id, limit } = c.req.query()
 
   let query = db.select().from(productCategories)
 
@@ -16,7 +16,11 @@ productCategory.get('/', async (c) => {
     query = query.where(like(productCategories.name, `%${search}%`))
   }
 
-  const results = await query
+  let results = await query
+
+  if (limit) {
+    results = results.slice(0, parseInt(limit))
+  }
 
   return success(c, results)
 })

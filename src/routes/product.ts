@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { eq, like, or, desc } from 'drizzle-orm'
+import { eq, like, or, desc, sql } from 'drizzle-orm'
 import { db, products } from '../db'
 import { authMiddleware } from '../middleware/auth'
 import { productSchema } from '../utils/validation'
@@ -8,9 +8,9 @@ import { success, created, error, paginated } from '../utils/response'
 const product = new Hono()
 
 product.get('/', async (c) => {
-  const { search, category_id, store_id } = c.req.query()
+  const { search, category_id, store_id, limit, random } = c.req.query()
 
-  let conditions = []
+  let conditions = [eq(products.is_active, true)]
 
   if (search) {
     conditions.push(like(products.name, `%${search}%`))
@@ -24,12 +24,19 @@ product.get('/', async (c) => {
     conditions.push(eq(products.store_id, parseInt(store_id)))
   }
 
-  conditions.push(eq(products.is_active, true))
-
-  const results = await db
+  let results = await db
     .select()
     .from(products)
     .where(conditions.length > 0 ? or(...conditions) : undefined)
+    .orderBy(desc(products.created_at))
+
+  if (random === 'true') {
+    results = results.sort(() => Math.random() - 0.5)
+  }
+
+  if (limit) {
+    results = results.slice(0, parseInt(limit))
+  }
 
   return success(c, results)
 })

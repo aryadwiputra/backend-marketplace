@@ -1,13 +1,13 @@
-import { serve } from '@hono/node-server'
 import app from './app'
 
 const port = parseInt(process.env.PORT || '3000')
 
-console.log(`Server is running on port ${port}`)
-
-serve({
-  fetch: app.fetch,
+Bun.serve({
   port,
+  hostname: '127.0.0.1',
+  fetch(req) {
+    return app.fetch(req, { env: { ...process.env } })
+  },
 })
 
-export default app
+console.log(`Server running on http://localhost:${port}`)

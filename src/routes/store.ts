@@ -8,7 +8,7 @@ import { success, created, error, paginated } from '../utils/response'
 const store = new Hono()
 
 store.get('/', async (c) => {
-  const { search, is_verified } = c.req.query()
+  const { search, is_verified, limit } = c.req.query()
 
   let conditions = []
 
@@ -20,9 +20,13 @@ store.get('/', async (c) => {
     conditions.push(eq(stores.is_verified, is_verified === 'true'))
   }
 
-  const results = conditions.length > 0
+  let results = conditions.length > 0
     ? await db.select().from(stores).where(or(...conditions))
     : await db.select().from(stores)
+
+  if (limit) {
+    results = results.slice(0, parseInt(limit))
+  }
 
   return success(c, results)
 })

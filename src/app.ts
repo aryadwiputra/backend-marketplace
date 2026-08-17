@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
-import { serveStatic } from 'hono/bun'
 import { errorHandler } from './middleware/error'
 import { corsMiddleware } from './middleware/cors'
 
@@ -24,15 +23,15 @@ app.use('*', errorHandler)
 
 app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }))
 
-app.route('/auth', authRoutes)
-app.route('/product-category', productCategoryRoutes)
-app.route('/product', productRoutes)
-app.route('/store', storeRoutes)
-app.route('/transaction', transactionRoutes)
-app.route('/user', userRoutes)
-app.route('/store-balance', storeBalanceRoutes)
-app.route('/withdrawal', withdrawalRoutes)
-app.route('/dashboard', dashboardRoutes)
-app.route('/raja-ongkir', rajaOngkirRoutes)
+app.route('/api/auth', authRoutes)
+app.route('/api/product-category', productCategoryRoutes)
+app.route('/api/product', productRoutes)
+app.route('/api/store', storeRoutes)
+app.route('/api/transaction', transactionRoutes)
+app.route('/api/user', userRoutes)
+app.route('/api/store-balance', storeBalanceRoutes)
+app.route('/api/withdrawal', withdrawalRoutes)
+app.route('/api/dashboard', dashboardRoutes)
+app.route('/api/raja-ongkir', rajaOngkirRoutes)
 
 export default app
