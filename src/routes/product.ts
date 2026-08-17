@@ -1,11 +1,40 @@
 import { Hono } from 'hono'
-import { eq, like, or, desc, sql } from 'drizzle-orm'
-import { db, products } from '../db'
+import { eq, like, or, desc } from 'drizzle-orm'
+import { db, products, stores, productCategories } from '../db'
 import { authMiddleware } from '../middleware/auth'
 import { productSchema } from '../utils/validation'
 import { success, created, error, paginated } from '../utils/response'
 
 const product = new Hono()
+
+async function transformProduct(p) {
+  const [store] = await db.select().from(stores).where(eq(stores.id, p.store_id)).limit(1)
+  const [category] = await db.select().from(productCategories).where(eq(productCategories.id, p.category_id)).limit(1)
+  
+  const images = p.images || []
+  const productImages = images.map((img, idx) => ({
+    image: img,
+    is_thumbnail: idx === 0
+  }))
+
+  return {
+    ...p,
+    product_images: productImages,
+    store: store ? {
+      id: store.id,
+      name: store.name,
+      username: store.username,
+      logo: store.logo,
+      product_count: 0
+    } : null,
+    product_category: category ? {
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      icon: category.icon
+    } : null
+  }
+}
 
 product.get('/', async (c) => {
   const { search, category_id, store_id, limit, random } = c.req.query()
@@ -38,7 +67,8 @@ product.get('/', async (c) => {
     results = results.slice(0, parseInt(limit))
   }
 
-  return success(c, results)
+  const transformed = await Promise.all(results.map(transformProduct))
+  return success(c, transformed)
 })
 
 product.get('/all/paginated', async (c) => {
@@ -70,9 +100,10 @@ product.get('/all/paginated', async (c) => {
 
   const total = allResults.length
   const offset = (page - 1) * perPage
-  const data = allResults.slice(offset, offset + perPage)
+  const paginatedResults = allResults.slice(offset, offset + perPage)
+  const transformed = await Promise.all(paginatedResults.map(transformProduct))
 
-  return paginated(c, data, { page, perPage, total })
+  return paginated(c, transformed, { page, perPage, total })
 })
 
 product.get('/:id', async (c) => {
@@ -88,7 +119,7 @@ product.get('/:id', async (c) => {
     return error(c, 'Product not found', 404)
   }
 
-  return success(c, result)
+  return success(c, await transformProduct(result))
 })
 
 product.get('/slug/:slug', async (c) => {
@@ -104,7 +135,7 @@ product.get('/slug/:slug', async (c) => {
     return error(c, 'Product not found', 404)
   }
 
-  return success(c, result)
+  return success(c, await transformProduct(result))
 })
 
 product.post('/', authMiddleware, async (c) => {
@@ -123,7 +154,7 @@ product.post('/', authMiddleware, async (c) => {
     })
     .returning()
 
-  return created(c, newProduct, 'Product created successfully')
+  return created(c, await transformProduct(newProduct), 'Product created successfully')
 })
 
 product.post('/:id', authMiddleware, async (c) => {
@@ -145,7 +176,7 @@ product.post('/:id', authMiddleware, async (c) => {
     return error(c, 'Product not found', 404)
   }
 
-  return success(c, updated, 'Product updated successfully')
+  return success(c, await transformProduct(updated), 'Product updated successfully')
 })
 
 product.delete('/:id', authMiddleware, async (c) => {

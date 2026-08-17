@@ -23,7 +23,7 @@ app.use('*', errorHandler)
 
 app.get('/api/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }))
 
-app.route('/api/auth', authRoutes)
+app.route('/api', authRoutes)
 app.route('/api/product-category', productCategoryRoutes)
 app.route('/api/product', productRoutes)
 app.route('/api/store', storeRoutes)
